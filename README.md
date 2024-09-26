@@ -29,6 +29,7 @@ Data/
 ```
 python script_name.py --plink_table {input_pheno.tsv} --vcf {input_vcf.tsv} --output {output} --ld 100000 --max_phenotype 1 --min_phenotype 0 --het
 ```
+Для категориальных фенотипов -max_phenotype 1 --min_phenotype 0, для непрерывных определяется согласно результатам фенотипирования   
 **Пример запуска**
 ```
 python3 prediction.py --plink_table CMS_pheno.tsv  --vcf CMS_vcf.tsv --output CMS.tsv --ld 100000 --max_phenotype 1 --min_phenotype 0 --het
