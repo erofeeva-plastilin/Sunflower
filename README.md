@@ -23,3 +23,14 @@ Data/
 ├── Genotype/ #тут обработанные vcf файлы после скрипта pos.py      
 │       ├── Categorical/ #обработанные vcf файлы после скрипта pos.py для категориальных/бинарных фенотипов      
 │       ├── Quantitative/ #обработанные vcf файлы после скрипта pos.py для непрерывных фенотипов   
+## Предсказание фенотипов 
+```
+python script_name.py --plink_table {input_pheno.tsv} --vcf {input_vcf.tsv} --output {output} --ld 100000 --max_phenotype 1 --min_phenotype 0 --het
+# Пример запуска
+python3 prediction.py --plink_table CMS_pheno.tsv  --vcf CMS_vcf.tsv --output CMS.tsv --ld 100000 --max_phenotype 1 --min_phenotype 0 --het
+```
+input_pheno.tsv - файл из папки Phenotype   
+input_vcf.tsv - файл из папки Genotype   
+output - название фенотипа
+Результат скрипта в папке Results
+Итоговые результаты по ссылке: https://docs.google.com/spreadsheets/d/1EardKid4snJ8-MThG1VvoeIXrowbNzZy6gZeXXGWahM/edit?gid=0#gid=0
