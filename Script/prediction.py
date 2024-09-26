@@ -1,17 +1,8 @@
 import pandas as pd
 import numpy as np
-class Args:
-    plink_table = "/content/CSV_pheno.tsv"
-    vcf = "/content/CMS_vcf.tsv"
-    output = "CMS"
-    ld = 100000
-    max_phenotype = 1  # максимальное значение для фенотипа
-    min_phenotype = 0  # минимальное значение для фенотипа
-    het = False        # гетерозиготы считать как половинное значение или нет
-args = Args()
-vcf_file = pd.read_csv(args.vcf, sep='\t')
-plink_file = pd.read_csv(args.plink_table, sep='\t')
+import argparse
 
+# Функция для чтения позиций и подготовки данных
 def datasets_preparing(plink_output, vcf, ld):
     vcf["SNP"] = vcf["#CHROM"].astype(str) + ":" + vcf["POS"].astype(str)
     plink_output["SNP"] = plink_output["#CHROM"].astype(str) + ":" + plink_output["POS"].astype(str)
@@ -28,6 +19,7 @@ def datasets_preparing(plink_output, vcf, ld):
                                     .mask(plink_output_uniq.ALT == plink_output_uniq.A1, plink_output_uniq.BETA)\
                                     .fillna(0)
     return plink_output_uniq, vcf
+# Функция для обработки генотипов
 def process_genotype(genotype, ref_effect, alt_effect, het):
     if genotype == '0/0':
         return ref_effect
@@ -40,7 +32,8 @@ def process_genotype(genotype, ref_effect, alt_effect, het):
     elif '0/2' in genotype or '1/2' in genotype:
         return alt_effect 
     else:
-        return 0  
+        return 0
+# Основная функция для расчета предсказанных фенотипов
 def calculating_predicted_phenotypes(plink_output, vcf, ld, max_phenotype, min_phenotype, het):
     plink_output_uniq, vcf_edited = datasets_preparing(plink_output, vcf, ld)
     markers_effect = plink_output_uniq.BETA.sum()
@@ -63,7 +56,22 @@ def calculating_predicted_phenotypes(plink_output, vcf, ld, max_phenotype, min_p
     predicted_protein.name = "predicted_protein"
     summary_samples = pd.concat([predicted_rank, predicted_protein], axis=1)
     return vcf_values, vcf_values_protein, summary_samples
-vcf_values, vcf_values_protein, summary_samples = calculating_predicted_phenotypes(
-    plink_file, vcf_file, ld=100000, max_phenotype=1, min_phenotype=0, het=False
-)
-summary_samples.to_csv(f"{args.output}_samples_summary.tsv", sep='\t')
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Расчет предсказанных фенотипов на основе PLINK и VCF данных")
+    parser.add_argument('--plink_table', type=str, required=True, help='Путь к файлу PLINK с фенотипическими данными')
+    parser.add_argument('--vcf', type=str, required=True, help='Путь к файлу VCF')
+    parser.add_argument('--output', type=str, required=True, help='Префикс для выходного файла')
+    parser.add_argument('--ld', type=int, default=100000, help='Генетическое расстояние в bp для группировки маркеров')
+    parser.add_argument('--max_phenotype', type=float, default=1.0, help='Максимальное значение фенотипа')
+    parser.add_argument('--min_phenotype', type=float, default=0.0, help='Минимальное значение фенотипа')
+    parser.add_argument('--het', action='store_true', help='Считать гетерозиготы как половину значения эффекта (если указан)')
+    args = parser.parse_args()
+    # Чтение файлов
+    vcf_file = pd.read_csv(args.vcf, sep='\t')
+    plink_file = pd.read_csv(args.plink_table, sep='\t')
+    # Вычисление предсказанных фенотипов
+    vcf_values, vcf_values_protein, summary_samples = calculating_predicted_phenotypes(
+        plink_file, vcf_file, ld=args.ld, max_phenotype=args.max_phenotype, min_phenotype=args.min_phenotype, het=args.het
+    )
+    # Сохранение результата
+    summary_samples.to_csv(f"{args.output}_samples_summary.tsv", sep='\t')
