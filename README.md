@@ -37,5 +37,5 @@ python3 prediction.py --plink_table CMS_pheno.tsv  --vcf CMS_vcf.tsv --output CM
 input_pheno.tsv - файл из папки Phenotype   
 input_vcf.tsv - файл из папки Genotype   
 output - название фенотипа
-Результат скрипта в папке Results    
+Результат скрипта в папке Results         
 Итоговые результаты по ссылке: https://docs.google.com/spreadsheets/d/1EardKid4snJ8-MThG1VvoeIXrowbNzZy6gZeXXGWahM/edit?gid=0#gid=0
