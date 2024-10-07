@@ -37,7 +37,7 @@ def process_genotype(genotype, ref_effect, alt_effect, het):
 def calculating_predicted_phenotypes(plink_output, vcf, ld, max_phenotype, min_phenotype, het):
     plink_output_uniq, vcf_edited = datasets_preparing(plink_output, vcf, ld)
     markers_effect = plink_output_uniq.BETA.sum()
-    coef = markers_effect / (max_phenotype - min_phenotype)
+    coef = (max_phenotype - min_phenotype) / max(abs(markers_effect), 1e-6)
     vcf_values = vcf_edited[vcf_edited.SNP.isin(plink_output_uniq.SNP)]
     plink_output_uniq = plink_output_uniq[plink_output_uniq.SNP.isin(vcf_edited.SNP)]
     for i in range(vcf_values.shape[0]):
@@ -49,11 +49,12 @@ def calculating_predicted_phenotypes(plink_output, vcf, ld, max_phenotype, min_p
             vcf_values.iloc[i, j] = process_genotype(genotype, ref_effect, alt_effect, het)
     vcf_values = vcf_values.set_index("SNP")
     vcf_values = vcf_values.drop(["#CHROM", "POS"], axis=1)
-    vcf_values_protein = vcf_values / coef
+    vcf_values_protein = vcf_values * coef
     predicted_rank = vcf_values.sum()
     predicted_rank.name = "predicted_rank"
     predicted_protein = vcf_values_protein.sum() + min_phenotype
-    predicted_protein.name = "predicted_protein"
+    predicted_protein.name = f"predicted_{args.output}"
+   # predicted_protein = predicted_protein.clip(lower=min_phenotype, upper=max_phenotype)
     summary_samples = pd.concat([predicted_rank, predicted_protein], axis=1)
     return vcf_values, vcf_values_protein, summary_samples
 if __name__ == "__main__":
