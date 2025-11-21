@@ -49,14 +49,14 @@ def calculating_predicted_phenotypes(plink_output, vcf, ld, max_phenotype, min_p
             vcf_values.iloc[i, j] = process_genotype(genotype, ref_effect, alt_effect, het)
     vcf_values = vcf_values.set_index("SNP")
     vcf_values = vcf_values.drop(["#CHROM", "POS"], axis=1)
-    vcf_values_protein = vcf_values * coef
+    vcf_values_pheno = vcf_values * coef
     predicted_rank = vcf_values.sum()
     predicted_rank.name = "predicted_rank"
-    predicted_protein = vcf_values_protein.sum() + min_phenotype
-    predicted_protein.name = f"predicted_{args.output}"
-   # predicted_protein = predicted_protein.clip(lower=min_phenotype, upper=max_phenotype)
-    summary_samples = pd.concat([predicted_rank, predicted_protein], axis=1)
-    return vcf_values, vcf_values_protein, summary_samples
+    predicted_pheno = vcf_values_pheno.sum() + min_phenotype
+    predicted_pheno.name = f"predicted_{args.output}"
+   # predicted_pheno = predicted_pheno.clip(lower=min_phenotype, upper=max_phenotype)
+    summary_samples = pd.concat([predicted_rank, predicted_pheno], axis=1)
+    return vcf_values, vcf_values_pheno, summary_samples
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Расчет предсказанных фенотипов на основе PLINK и VCF данных")
     parser.add_argument('--plink_table', type=str, required=True, help='Путь к файлу PLINK с фенотипическими данными')
@@ -71,7 +71,7 @@ if __name__ == "__main__":
     vcf_file = pd.read_csv(args.vcf, sep='\t')
     plink_file = pd.read_csv(args.plink_table, sep='\t')
     # Вычисление предсказанных фенотипов
-    vcf_values, vcf_values_protein, summary_samples = calculating_predicted_phenotypes(
+    vcf_values, vcf_values_pheno, summary_samples = calculating_predicted_phenotypes(
         plink_file, vcf_file, ld=args.ld, max_phenotype=args.max_phenotype, min_phenotype=args.min_phenotype, het=args.het
     )
     # Сохранение результата
